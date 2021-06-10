@@ -22,6 +22,9 @@ public class JuraPlugin extends Plugin
 	@Inject
 	private JuraConfig config;
 
+	private Actor theDude;
+	private int tickCounter = 0;
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -40,19 +43,36 @@ public class JuraPlugin extends Plugin
 		{
 			Player lokaalne = client.getLocalPlayer();
 			lokaalne.setAnimation(config.vaartus());
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Mega türa " + config.vaartus(), null);
+			lokaalne.setAnimationFrame(0);
 		}
 	}
 
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplat)
 	{
-		Actor theDude = hitsplat.getActor();
-		if (!client.getLocalPlayer().equals(theDude))
+		theDude = hitsplat.getActor();
+		if (theDude instanceof Player) theDude = null;
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick e)
+	{
+		if (theDude instanceof NPC && tickCounter == 0)
 		{
-			theDude.setOverheadText("Fuck my ass!");
+			theDude.setOverheadText("Fuck my ass");
 			theDude.setAnimation(AnimationID.BURYING_BONES);
 			theDude.setAnimationFrame(0);
+			tickCounter++;
+		}
+		else if (theDude != null && tickCounter == 3)
+		{
+			theDude.setOverheadText("");
+			theDude = null;
+			tickCounter = 0;
+		}
+		else if (theDude != null)
+		{
+			tickCounter++;
 		}
 	}
 
